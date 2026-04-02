@@ -542,24 +542,3 @@ Do HiFi and Hi-C come from the same individual?
 
 ---
 
-## Authors & Credits
-
-**Tutorial Authors:**  
-Alex Ostrovsky, Cristóbal Gallardo, Anna Syme, Linelle Abueg, Brandon Pickett, Giulio Formenti, Marcella Sozzoni, Anton Nekrutenko
-
-**Reviewers:**  
-Saskia Hiltemann, Björn Grüning, Delphine Lariviere, Cristóbal Gallardo, Helena Rasche, Linelle Abueg, Anton Nekrutenko, Marius van den Beek, Anna Syme, Bérénice Batut
-
-**Published:** June 4, 2021 · **Last updated:** January 23, 2026  
-**Tutorial PURL:** https://gxy.io/GTN:T00039
-
----
-
-## License
-
-Tutorial content is licensed under the [Creative Commons Attribution 4.0 International License](http://creativecommons.org/licenses/by/4.0/).  
-The GTN Framework is licensed under [MIT](https://github.com/galaxyproject/training-material/blob/main/LICENSE.md).
-
----
-
-*This README was generated as a structured reference guide for the [Galaxy Training Network VGP tutorial](https://training.galaxyproject.org/training-material/topics/assembly/tutorials/vgp_genome_assembly/tutorial.html). For the most up-to-date instructions, always refer to the original tutorial page.*
