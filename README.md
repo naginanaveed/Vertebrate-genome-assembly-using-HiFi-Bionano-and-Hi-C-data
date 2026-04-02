@@ -1,6 +1,6 @@
 # 🧬 Vertebrate Genome Assembly using HiFi, Bionano & Hi-C Data
-
-> (https://training.galaxyproject.org/training-material/topics/assembly/tutorials/vgp_genome_assembly/tutorial.html)**  
+---
+> (https://training.galaxyproject.org/training-material/topics/assembly/tutorials/vgp_genome_assembly/tutorial.html)
 
 
 ---
@@ -16,8 +16,8 @@
 8. [Step 1 — Get Data](#step-1--get-data)
 9. [Step 2 — HiFi Read Preprocessing (Cutadapt)](#step-2--hifi-read-preprocessing-cutadapt)
 10. [Step 3 — Genome Profile Analysis](#step-3--genome-profile-analysis)
-    - [3a. k-mer Counting with Meryl](#3a-k-mer-counting-with-meryl)
-    - [3b. Genome Profiling with GenomeScope2](#3b-genome-profiling-with-genomescope2)
+    - [a. k-mer Counting with Meryl](#a-k-mer-counting-with-meryl)
+    - [b. Genome Profiling with GenomeScope2](#b-genome-profiling-with-genomescope2)
 11. [Step 4 — Genome Assembly with hifiasm](#step-4--genome-assembly-with-hifiasm)
     - [Assembly Modes](#assembly-modes)
     - [Hi-C Phased Assembly](#hi-c-phased-assembly)
@@ -34,10 +34,6 @@
     - [YaHS Scaffolding](#yahs-scaffolding)
     - [Final Evaluation with Pretext](#final-evaluation-with-pretext)
 16. [Expected Results Summary](#expected-results-summary)
-17. [Data Recommendation Notes](#data-recommendation-notes)
-18. [Datasets & Supporting Material](#datasets--supporting-material)
-19. [Authors & Credits](#authors--credits)
-20. [License](#license)
 
 ---
 
@@ -202,7 +198,7 @@ https://zenodo.org/record/6098306/files/HiFi_synthetic_50x_02.fasta
 https://zenodo.org/record/6098306/files/HiFi_synthetic_50x_03.fasta
 ```
 
-Upload with datatype: `fasta`
+ datatype: `fasta`
 
 ### Hi-C Reads (fastqsanger.gz format)
 
@@ -211,13 +207,13 @@ https://zenodo.org/record/5550653/files/SRR7126301_1.fastq.gz  → rename: Hi-C_
 https://zenodo.org/record/5550653/files/SRR7126301_2.fastq.gz  → rename: Hi-C_dataset_R
 ```
 
-Upload with datatype: `fastqsanger.gz`
+ datatype: `fastqsanger.gz`
 
-> ⚠️ Hi-C datasets are large — upload may take ~15 minutes.
+
 
 ### Organizing Data
 
-After uploading, combine the three HiFi FASTA files into a **Galaxy collection** (flat list) named `HiFi_collection`. This is required because the downstream workflows take a collection as input and run jobs in parallel on each file.
+After uploading, combine the three HiFi FASTA files into a **Galaxy collection** (flat list) named `HiFi_collection`. 
 
 ---
 
@@ -225,7 +221,7 @@ After uploading, combine the three HiFi FASTA files into a **Galaxy collection**
 
 Because PacBio SMRT technology can incorporate adapter sequences anywhere within a read (not just at the ends), we discard entire reads that contain adapter sequences rather than trimming them.
 
-**Tool:** Cutadapt v4.4  
+**Tool:** Cutadapt  
 **Mode:** Single-end, discard any read containing an adapter
 
 | Parameter | Value |
@@ -244,9 +240,33 @@ Because PacBio SMRT technology can incorporate adapter sequences anywhere within
 
 ## Step 3 — Genome Profile Analysis
 
-K-mer frequency analysis provides key genome characteristics before assembly begins, including estimated genome size, heterozygosity, repeat content, and error rate.
+### Overview
++ Genome profiling is an important step performed before genome assembly. It helps in understanding the basic characteristics of the genome using sequencing data.
 
-### 3a. k-mer Counting with Meryl
++ Instead of directly assembling the genome, we first analyze patterns in the reads to estimate properties like genome size, repeats, and heterozygosity.
+
++ K-mer frequency analysis provides key genome characteristics before assembly begins, including estimated genome size, heterozygosity, repeat content, and error rate.
+
+###  Objectives
+
+- Estimate genome size  
+- Identify repetitive sequences  
+- Measure heterozygosity (genetic variation)  
+- Assess sequencing data quality  
+- Prepare data for accurate assembly  
+
+---
+### Tools Used
+#### 🔹 Meryl
+- Counts k-mers (substrings of length k) from sequencing reads  
+- Generates a k-mer frequency database  
+
+#### 🔹 GenomeScope2
+- Uses k-mer counts to model genome characteristics  
+- Generates graphs and statistical estimates  
+- use to estimate genome size, repeats, and heterozygosity
+  
+### a. `k-mer Counting with Meryl`
 
 Meryl decomposes reads into k-mers, counts occurrences, and builds a searchable database. K-mer size **k=31** is used — long enough for uniqueness in most genomes, short enough for robustness to errors.
 
@@ -256,7 +276,7 @@ Meryl decomposes reads into k-mers, counts occurrences, and builds a searchable 
 2. **Union-sum** merge the collection into one database → output: `Merged meryldb`
 3. **Generate histogram** from merged database → output: `meryldb histogram`
 
-### 3b. Genome Profiling with GenomeScope2
+### b. `Genome Profiling with GenomeScope2`
 
 GenomeScope2 fits a mixture of negative binomial distributions to the k-mer histogram to estimate genome properties.
 
@@ -280,7 +300,7 @@ GenomeScope2 fits a mixture of negative binomial distributions to the k-mer hist
 | Model | Detailed model fitting report |
 | Summary | Key genome estimates (size, heterozygosity, error rate) |
 
-**Expected Results for *S. cerevisiae* tutorial data:**
+**Expected Results:**
 
 ```
 Estimated haploid genome size:  ~11.7 Mb
@@ -288,12 +308,40 @@ Heterozygosity:                  0.576%
 Model fit:                       >93%
 Heterozygous peak:               ~25× coverage
 Homozygous peak:                 ~50× coverage
+
+
+
+[Uploading GenomeScope version 2.0
+input file = /corral4/main/objects/8/6/1/dataset_861792ca-38f6-41e1-bc78-10bb5fa38e9f.dat
+output directory = .
+p = 2
+k = 31
+TESTING set to TRUE
+
+property                      min               max
+Homozygous (aa)               99.4165%          99.4241%
+Heterozygous (ab)             0.575891%         0.583546%
+Genome Haploid Length         11,739,513 bp     11,747,352 bp
+Genome Repeat Length          723,114 bp        723,597 bp
+Genome Unique Length          11,016,399 bp     11,023,756 bp
+Model Fit                     92.5159%          96.5191%
+Read Error Rate               0.00094319%       0.00094319%
+Galaxy139-[GenomeScope on dataset 134 Summary]
+
 ```
 
 The bimodal k-mer distribution is characteristic of a diploid genome. The summary values (especially genome size) are used to parameterize later `purge_dups` runs.
 
+
+
+
+<img width="500" height="500" alt="Galaxy135- GenomeScope on dataset 134 Linear plot" src="https://github.com/user-attachments/assets/abd42695-7a74-4c70-b4a0-98042e89bba2" />
+
 ---
 
+<img width="500" height="500" alt="Galaxy136- GenomeScope on dataset 134 Log plot" src="https://github.com/user-attachments/assets/e2aeea85-df89-442d-a85a-01c818264cf0" />
+
+---
 ## Step 4 — Genome Assembly with hifiasm
 
 hifiasm is a fast, open-source *de novo* assembler for PacBio HiFi reads. It performs 3 rounds of haplotype-aware error correction and builds a phased string graph where heterozygous alleles appear as "bubbles."
@@ -336,13 +384,14 @@ hifiasm is a fast, open-source *de novo* assembler for PacBio HiFi reads. It per
 
 > These outputs require the **purging step** to remove haplotypic duplications before scaffolding.
 
+
 ---
 
 ## Step 5 — Assembly Evaluation
 
 Three complementary tools assess different dimensions of assembly quality.
 
-### gfastats (Summary Statistics)
+### `gfastats (Summary Statistics)`
 
 Generates N50, NG50, contig count, total length, GC content, and more. Run on GFA files to also capture graph-specific stats.
 
@@ -365,7 +414,7 @@ After running gfastats separately on hap1 and hap2, use **Column join** to merge
 
 ---
 
-### BUSCO (Gene Completeness)
+### `BUSCO (Gene Completeness)`
 
 BUSCO checks for the presence, duplication, or absence of universal single-copy orthologs (genes expected once per haploid genome) to assess biological completeness.
 
@@ -382,9 +431,16 @@ BUSCO checks for the presence, duplication, or absence of universal single-copy 
 
 > High duplication in BUSCO scores often indicates false duplications that need purging.
 
+<img width="500" height="500" alt="Galaxy161- Busco on dataset 154_ Summary image - Specific lineage" src="https://github.com/user-attachments/assets/13f5d021-3824-4875-bda9-cbba3f0e0c73" />
+
+<img width="500" height="500" alt="Galaxy164- Busco on dataset 153_ Summary image - Specific lineage" src="https://github.com/user-attachments/assets/c1f5e9de-ebc9-4da6-8325-caeb6d07959a" />
+
+
+
+
 ---
 
-### Merqury (k-mer QV)
+### `Merqury (k-mer QV)`
 
 Merqury performs reference-free quality assessment by comparing k-mers in the reads to those in the assembly.
 
@@ -395,6 +451,11 @@ Merqury performs reference-free quality assessment by comparing k-mers in the re
 | **QV (Quality Value)** | Phred-scale measure of base accuracy. QV40 = 1 error per 10,000 bases. Higher is better. |
 | **Completeness** | Fraction of read k-mers present in the assembly. Higher = more complete. |
 | **Copy Number (CN) spectrum** | Distribution of k-mer copy numbers in the assembly — reveals if regions are properly diploid, collapsed, or duplicated |
+
+
+
+<img width="500" height="500" alt="Galaxy182- output_merqury spectra-cn ln" src="https://github.com/user-attachments/assets/ecd30d1e-8295-4ccb-9d44-0d66022691ed" />
+
 
 ---
 
@@ -429,6 +490,7 @@ Merqury performs reference-free quality assessment by comparing k-mers in the re
 **Result:** A purged primary assembly with haplotigs moved to the alternate set, and a purged alternate set.
 
 ---
+# SCAFFOLDING
 
 ## Step 7 — Scaffolding with Bionano Optical Maps
 
@@ -454,6 +516,14 @@ Run **gfastats**, **BUSCO**, and **Merqury** on the Bionano-scaffolded assembly 
 - Scaffold N50 (substantially increased)
 - Total scaffold count (reduced)
 - No significant degradation in BUSCO completeness or Merqury QV
+
+---
+
+
+<img width="500" height="500" alt="Galaxy199- pretext_snapshotFullMap" src="https://github.com/user-attachments/assets/b96c78d7-2346-4c29-bfc4-0bca4baef20a" />
+
+
+
 
 ---
 
@@ -532,46 +602,6 @@ The following table summarizes approximate expected metrics at each pipeline sta
 | After YaHS (Hi-C) scaffolding | 16 (= chromosomes) | Full chromosome-scale | ~99% | Similar |
 
 > Final scaffold count should match the known chromosome count of *S. cerevisiae* (16 chromosomes).
-
----
-
-## Data Recommendation Notes
-
-- For **diploids**: minimum **30× PacBio HiFi** and **60× Hi-C** coverage
-- For **highly repetitive regions**: up to **60× HiFi** recommended
-- Hi-C data must come from the **same individual** as HiFi data to use it for contig phasing (it can come from a different individual of the same species only for scaffolding)
-- Parental data is ideal but often unavailable for wild-caught organisms — use Hi-C phased mode in that case
-
-### Choosing Your Assembly Mode
-
-```
-Do HiFi and Hi-C come from the same individual?
-│
-├── YES → Use WF4 (Hi-C phased hifiasm)
-│         ├── Do QC: purging needed?
-│         │   ├── YES → Run WF6B, then scaffold each haplotype separately
-│         │   └── NO  → Scaffold each haplotype separately
-│
-└── NO  → Use WF3 (solo hifiasm)
-          ├── Do QC: purging needed?
-          │   ├── YES → Run WF6, then scaffold primary
-          │   └── NO  → Scaffold primary directly
-```
-
----
-
-## Datasets & Supporting Material
-
-| Resource | Link |
-|---|---|
-| HiFi synthetic reads (Zenodo) | https://zenodo.org/record/6098306 |
-| Hi-C reads (Zenodo) | https://zenodo.org/record/5550653 |
-| Tutorial workflows | https://training.galaxyproject.org/training-material/topics/assembly/tutorials/vgp_genome_assembly/workflows/ |
-| Tutorial FAQs | https://training.galaxyproject.org/training-material/topics/assembly/tutorials/vgp_genome_assembly/faqs/ |
-| Video recordings | https://training.galaxyproject.org/training-material/topics/assembly/tutorials/vgp_genome_assembly/recordings/ |
-| Original GTN Tutorial | https://training.galaxyproject.org/training-material/topics/assembly/tutorials/vgp_genome_assembly/tutorial.html |
-| GenomeArk repository | https://genomeark.org |
-| VGP (Vertebrate Genomes Project) | https://vertebrategenomesproject.org |
 
 ---
 
