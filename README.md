@@ -1,18 +1,17 @@
 # 🧬 Vertebrate Genome Assembly using HiFi, Bionano & Hi-C Data
 
-> **Step-by-step guide based on the [Galaxy Training Network VGP Tutorial](https://training.galaxyproject.org/training-material/topics/assembly/tutorials/vgp_genome_assembly/tutorial.html)**  
-> **Level:** Intermediate · **Time:** ~5 hours · **Platform:** [Galaxy](https://usegalaxy.cz/)
+> (https://training.galaxyproject.org/training-material/topics/assembly/tutorials/vgp_genome_assembly/tutorial.html)**  
+
 
 ---
 
 ## 📋 Table of Contents
 
 1. [Overview](#overview)
-2. [Key Questions & Learning Objectives](#key-questions--learning-objectives)
-3. [Prerequisites](#prerequisites)
+2. [Objectives](#objectives)
 4. [Important Terminology](#important-terminology)
 5. [Pipeline Overview](#pipeline-overview)
-6. [Input Data & Assembly Trajectories](#input-data--assembly-trajectories)
+6. [Input Data](#input-data)
 7. [Tools Used](#tools-used)
 8. [Step 1 — Get Data](#step-1--get-data)
 9. [Step 2 — HiFi Read Preprocessing (Cutadapt)](#step-2--hifi-read-preprocessing-cutadapt)
@@ -44,41 +43,38 @@
 
 ## Overview
 
-This pipeline implements the **Vertebrate Genomes Project (VGP)** assembly workflow developed by the Genome 10K (G10K) consortium. The goal is to generate **high-quality, near-error-free, gap-free, chromosome-level, haplotype-phased** genome assemblies.
+This project demonstrates a complete genome assembly workflow using the VGP (Vertebrate Genomes Project) pipeline on the Galaxy platform.
 
-The tutorial uses synthetic HiFi reads from *Saccharomyces cerevisiae* S288C as a test case — a well-characterized model organism that allows precise evaluation of the final assembly.
+Genome assembly is the process of reconstructing a full genome sequence from small DNA fragments (reads). In this workflow, multiple sequencing technologies are combined to improve accuracy and completeness:
 
-**What makes VGP assemblies exceptional?**
-- Combines the long read lengths of PacBio HiFi (10–25 kbp, >Q20 accuracy)
-- With the structural information of Bionano optical maps
-- And the long-range chromatin contact data of Illumina Hi-C
-- Resulting in chromosome-scale, haplotype-resolved assemblies
+- HiFi reads (PacBio): Highly accurate long DNA sequences  
+- Hi-C data: Helps organize sequences into chromosomes  
+- Bionano optical maps: Provide large-scale structural information  
 
-> ⚠️ **Note:** Results may vary slightly depending on tool versions used, as algorithms can change between releases.
+The pipeline integrates these datasets step by step to transform raw sequencing data into a high-quality, chromosome-level genome assembly.
+ 
+Raw DNA data → processed → assembled → organized into chromosomes → evaluated
 
----
-
-## Key Questions & Learning Objectives
-
-### Questions
-- What combination of tools produces the highest quality assembly of vertebrate genomes?
-- How can we evaluate assembly quality in a **reference-free** way?
-
-### Objectives
-- Learn the tools necessary to perform a *de novo* assembly of a vertebrate genome
-- Evaluate assembly quality using multiple orthogonal approaches
 
 ---
 
-## Prerequisites
 
-Before starting this tutorial, you should be familiar with:
+## Objectives
+### 🔹 Main Objective
+To perform a de novo genome assembly and generate a high-quality genome sequence using the VGP pipeline.
 
-| Requirement | Resource |
-|---|---|
-| Introduction to Galaxy | [Galaxy Training — Intro](https://training.galaxyproject.org/training-material/topics/introduction) |
-| Quality Control concepts | [QC Slides](https://training.galaxyproject.org/training-material/topics/sequence-analysis/tutorials/quality-control/slides.html) |
-| Hands-on QC practice | [QC Tutorial](https://training.galaxyproject.org/training-material/topics/sequence-analysis/tutorials/quality-control/tutorial.html) |
+---
+
+### 🔹 Specific Objectives
+
+- Understand the complete genome assembly workflow  
+- Perform preprocessing and quality control of sequencing data  
+- Conduct k-mer analysis to estimate genome properties  
+- Assemble genome into contigs using Hifiasm  
+- Remove duplicate and redundant sequences  
+- Use Hi-C and Bionano data for chromosome-level scaffolding  
+- Evaluate assembly quality using metrics like N50 and completeness  
+  
 
 ---
 
@@ -117,46 +113,83 @@ Stage 5:  Decontamination     →  WF9  |  WF0 (mitochondrial assembly)
 
 ---
 
-## Input Data & Assembly Trajectories
+## Input Data 
 
-| Input Data | Assembly Quality | Trajectory |
-|---|---|---|
-| HiFi only | Minimum requirement | A |
-| HiFi + Hi-C | Better haplotype resolution, fewer switch errors | B |
-| HiFi + Bionano | Better contiguity | C |
-| HiFi + Hi-C + Bionano | Even better contiguity | D |
-| HiFi + parental data | Properly phased | E |
-| HiFi + parental + Hi-C | Better haplotype resolution | F |
-| HiFi + parental + Bionano | Properly phased + improved contiguity | G |
-| HiFi + parental + Hi-C + Bionano | Best: properly phased + maximum contiguity | H |
+| Input Data | Assembly Quality | 
+|---|---|
+| HiFi only | Minimum requirement |
+| HiFi + Hi-C | Better haplotype resolution, fewer switch errors | 
+| HiFi + Bionano | Better contiguity | 
+| HiFi + Hi-C + Bionano | Even better contiguity | 
+| HiFi + parental data | Properly phased | 
+| HiFi + parental + Hi-C | Better haplotype resolution | 
+| HiFi + parental + Bionano | Properly phased + improved contiguity | 
+| HiFi + parental + Hi-C + Bionano | Best: properly phased + maximum contiguity | 
 
-> 📌 **This tutorial follows Trajectory D** (HiFi + Hi-C + Bionano), the most commonly used high-quality path.
-
-> **Coverage recommendation:** At least **30× HiFi** and **60× Hi-C** for diploid genomes. Up to 60× HiFi for highly repetitive genomes.
 
 ---
 
 ## Tools Used
 
-| Tool | Version | Purpose |
-|---|---|---|
-| **Cutadapt** | 4.4+galaxy0 | Remove adapter-containing HiFi reads |
-| **Meryl** | 1.3+galaxy6 | k-mer counting and database operations |
-| **GenomeScope2** | 2.0+galaxy2 | Genome profiling from k-mer spectra |
-| **hifiasm** | 0.19.8+galaxy0 | De novo assembly of HiFi reads |
-| **gfastats** | 1.3.6+galaxy0 | Assembly stats & GFA→FASTA conversion |
-| **BUSCO** | 5.5.0+galaxy0 | Gene completeness assessment |
-| **Merqury** | 1.3+galaxy5 | k-mer based quality value (QV) and completeness |
-| **purge_dups** | 1.2.6+galaxy0 | Remove false duplications from assembly |
-| **Bionano Solve** | *(optional)* | Hybrid scaffolding with optical maps |
-| **BWA-MEM2** | 2.2.1+galaxy1 | Align Hi-C reads to assembly |
-| **Samtools** | 1.15.1+galaxy0 | SAM/BAM manipulation |
-| **YaHS** | 1.2a.2+galaxy1 | Hi-C based scaffolding |
-| **PretextMap** | 0.1.9+galaxy0 | Generate Hi-C contact maps |
-| **Pretext Snapshot** | 0.0.3+galaxy1 | Visualize Hi-C contact maps |
+| Tool | Purpose |
+|---|---|
+| **Cutadapt** |  Remove adapter-containing HiFi reads |
+| **Meryl** |  k-mer counting and database operations |
+| **GenomeScope2** | Genome profiling from k-mer spectra |
+| **hifiasm** |  De novo assembly of HiFi reads |
+| **gfastats** |  Assembly stats & GFA→FASTA conversion |
+| **BUSCO** |  Gene completeness assessment |
+| **Merqury** |  k-mer based quality value (QV) and completeness |
+| **purge_dups** | Remove false duplications from assembly |
+| **Bionano Solve** |  Hybrid scaffolding with optical maps |
+| **BWA-MEM2** | Align Hi-C reads to assembly |
+| **Samtools** |  SAM/BAM manipulation |
+| **YaHS** | Hi-C based scaffolding |
+| **PretextMap** | Generate Hi-C contact maps |
+| **Pretext Snapshot** | Visualize Hi-C contact maps |
 
 ---
 
+                ┌──────────────┐
+                │ Input Data   │
+                │ (HiFi/Hi-C)  │
+                └──────┬───────┘
+                       ↓
+              ┌─────────────────┐
+              │ Preprocessing   │
+              │ (Cutadapt)      │
+              └──────┬──────────┘
+                     ↓
+           ┌────────────────────┐
+           │ k-mer Analysis     │
+           │ (Meryl + GenomeScope)
+           └──────┬─────────────┘
+                  ↓
+           ┌────────────────────┐
+           │ Assembly           │
+           │ (Hifiasm)          │
+           └──────┬─────────────┘
+                  ↓
+         ┌──────────────────────┐
+         │ Purging Duplicates   │
+         │ (purge_dups)         │
+         └──────┬───────────────┘
+                ↓
+        ┌───────────────────────┐
+        │ Scaffolding           │
+        │ (Bionano + Hi-C)      │
+        └──────┬────────────────┘
+               ↓
+       ┌────────────────────────┐
+       │ Evaluation             │
+       │ (Pretext, QC metrics)  │
+       └────────┬───────────────┘
+                ↓
+         ┌──────────────┐
+         │ Final Genome │
+         └──────────────┘
+
+    
 ## Step 1 — Get Data
 
 The tutorial uses **synthetic HiFi reads** generated from the *S. cerevisiae* S288C reference, using the HIsim simulator at 2% mutation rate, 30× coverage. This allows precise ground-truth evaluation.
