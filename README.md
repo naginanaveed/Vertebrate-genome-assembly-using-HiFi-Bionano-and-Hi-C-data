@@ -586,13 +586,14 @@ Generate a final Hi-C contact map on the **YaHS-scaffolded assembly** for visual
 - Minimal off-diagonal noise
 - Telomeric signals at chromosome ends (if applicable)
 
-Run final **gfastats**, **BUSCO**, and **Merqury** on the YaHS scaffolds to confirm quality improvement at each stage.
+
+<img width="500" height="500" alt="Galaxy247- pretext_snapshotscaffold_16" src="https://github.com/user-attachments/assets/a03dec61-5446-4347-ae72-8b2f536576c3" />
 
 ---
 
 ## Expected Results Summary
 
-The following table summarizes approximate expected metrics at each pipeline stage for the tutorial *S. cerevisiae* dataset:
+The following table summarizes approximate expected metrics at each pipeline stage for  *S. cerevisiae* dataset:
 
 | Assembly Stage | Contigs/Scaffolds | N50 | BUSCO Complete | Merqury QV |
 |---|---|---|---|---|
